@@ -11,6 +11,7 @@ import time
 from pytorch_lightning import seed_everything
 from torch import autocast
 from contextlib import contextmanager, nullcontext
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 from ldm.util import instantiate_from_config
 from ldm.models.diffusion.ddim import DDIMSampler
@@ -24,7 +25,8 @@ def chunk(it, size):
 
 def load_model_from_config(config, ckpt, verbose=False):
     print(f"Loading model from {ckpt}")
-    pl_sd = torch.load(ckpt, map_location="cpu")
+    torch.serialization.add_safe_globals([ModelCheckpoint])
+    pl_sd = torch.load(ckpt, map_location="cpu", weights_only=False)
     if "global_step" in pl_sd:
         print(f"Global Step: {pl_sd['global_step']}")
     sd = pl_sd["state_dict"]

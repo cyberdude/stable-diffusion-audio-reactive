@@ -4,7 +4,13 @@
 build:
   # set to true if your model requires a GPU
   gpu: true
-  cuda: "11.7"
+  cuda: "12.1"
+
+  pre_install:
+    - export PYTHON_CONFIGURE_OPTS=""
+    - export CFLAGS=""
+    - apt-get update -qq
+    - apt-get install -qqy --no-install-recommends --fix-missing --allow-downgrades --force-yes python3-pip python3-setuptools
 
   # a list of ubuntu apt packages to install
   system_packages:
@@ -12,56 +18,31 @@ build:
     - "ffmpeg"
 
   # python version in the form '3.8' or '3.8.12'
-  python_version: "3.7"
+  python_version: "3.10"
 
   # a list of packages in the format <package-name>==<version>
-  python_packages:
-    - "numpy==1.21.6"
-    - "torch==1.13.0"
-    - "torchvision==0.14.0"
-    - "transformers==4.19.2"
-    - "open_clip_torch==1.2.1"
-    - "autokeras==1.0.19"
-    - "torchmetrics==0.6.0"
-    - albumentations==0.4.3
-    - opencv-python==4.1.2.30
-    - pudb==2019.2
-    - imageio==2.9.0
-    - imageio-ffmpeg==0.4.2
-    - pytorch-lightning==1.4.2
-    - omegaconf==2.1.1
-    - test-tube==0.7.5
-    - streamlit==0.73.1
-    - einops==0.3.0
-    - torch-fidelity==0.3.0
-    - transformers==4.19.2
-    - torchmetrics==0.6.0
-    - kornia==0.6
-    - fire==0.4.0
-    - jupyterlab==3.3.4
-  
+  python_requirements: requirements.txt
+
   # commands run after the environment is setup
   run:
     - pip install -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers
     - pip install -e git+https://github.com/openai/CLIP.git@main#egg=clip
     - pip install diffusers
     - pip install --upgrade --no-cache-dir gdown
-    #- wget https://drinkordiecdn.lol/sd-v1-3-full-ema.ckpt
     - mkdir /stable-diffusion-checkpoints
-    - cd /stable-diffusion-checkpoints && wget https://pollinations-models.s3.amazonaws.com/v1-5-pruned-emaonly.ckpt
+    # if v1-5-pruned-emaonly.ckpt is not available, I have it somewhere
+    - cd /stable-diffusion-checkpoints && wget https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt
     - pip install notebook
     - git clone https://github.com/CompVis/taming-transformers
     - git clone https://github.com/openai/CLIP
-    - git clone https://github.com/deforum/k-diffusion
+    - git clone https://github.com/crowsonkb/k-diffusion
     - pip install jsonmerge clean-fid resize-right torchdiffeq
     - pip install googletrans==3.1.0a0 librosa
     # xformers
-    - pip install triton==2.0.0.dev20221120
+    - pip install triton==2.1.0
     - pip install ninja
     - git clone https://github.com/facebookresearch/xformers.git
-    - export FORCE_CUDA="1" && export CUDA_VISIBLE_DEVICES=0 && export TORCH_CUDA_ARCH_LIST=8.0 && export CUDA_HOME=/usr/local/cuda-11.7 && cd xformers && git submodule update --init --recursive && pip install -r requirements.txt && pip install -e .
-
-
+    - export FORCE_CUDA="1" && export CUDA_VISIBLE_DEVICES=0 && export TORCH_CUDA_ARCH_LIST=8.0 && export CUDA_HOME=/usr/local/cuda-12.1 && cd xformers && git submodule update --init --recursive && pip install -r requirements.txt && pip install -e .
 
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"
